@@ -177,6 +177,8 @@
 
                 highScore = data.topScores[0] || 0; // Update highScore
                 highScoreDisplay.textContent = highScore.value;
+				console.log(highScore); // Inspect the structure of highScore
+
             } catch (err) {
                 console.error('Error fetching high scores:', err);
             }
