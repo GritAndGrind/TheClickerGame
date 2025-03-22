@@ -162,17 +162,18 @@
 
                 leaderboard.innerHTML = ''; // Clear leaderboard
 
-                data.topScores.forEach((score, index) => {
-                    const scoreItem = document.createElement('li');
-                    scoreItem.textContent = score;
+				data.topScores.forEach((score, index) => {
+					const scoreItem = document.createElement('li');
+					scoreItem.textContent = `${score.name}: ${score.value}`; // Show name and score
 
-                    if (index === 0) {
-                        scoreItem.style.color = 'red';
-                        scoreItem.style.fontWeight = 'bold';
-                    }
+					if (index === 0) {
+						scoreItem.style.color = 'red';
+						scoreItem.style.fontWeight = 'bold';
+					}
 
-                    leaderboard.appendChild(scoreItem);
-                });
+					leaderboard.appendChild(scoreItem);
+				});
+
 
                 highScore = data.topScores[0] || 0; // Update highScore
                 highScoreDisplay.textContent = highScore;
@@ -181,19 +182,20 @@
             }
         }
 
-        async function updateHighScore(newScore) {
-            try {
-                const response = await fetch('/highscore', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newScore }),
-                });
-                const data = await response.json();
-                fetchHighScores(); // Refresh leaderboard
-            } catch (err) {
-                console.error('Error updating high score:', err);
-            }
-        }
+		async function updateHighScore(newScore, playerName) {
+			try {
+				const response = await fetch('/highscore', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ newScore, playerName }),
+				});
+				const data = await response.json();
+				fetchHighScores(); // Refresh leaderboard
+			} catch (err) {
+				console.error('Error updating high score:', err);
+			}
+		}
+
 
 		startButton.addEventListener("click", () => {
 			clickCount = 0;
@@ -213,12 +215,16 @@
 				clickButton.style.display = "none";
 				startButton.style.display = "inline-block";
 
+				// Prompt for player name if they set a new high score
 				if (clickCount > highScore) {
-					await updateHighScore(clickCount);
+					const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
+					await updateHighScore(clickCount, playerName);
 				}
-			// reload the leaderboards after each play
-			fetchHighScores(); // Initial leaderboard load
+
+				// Reload or fetch updated leaderboard
+				fetchHighScores();
 			}, 10000);
+
 		});
 
 

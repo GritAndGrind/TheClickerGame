@@ -30,8 +30,8 @@ app.get('/', (req, res) => {
 // Endpoint to get the top 5 scores
 app.get('/highscores', async (req, res) => {
     try {
-        const result = await pool.query('SELECT value FROM high_score ORDER BY value DESC LIMIT 5');
-        const topScores = result.rows.map(row => row.value);
+        const result = await pool.query('SELECT name, value FROM high_score ORDER BY value DESC LIMIT 5');
+        const topScores = result.rows.map(row => ({ name: row.name, value: row.value }));
         res.json({ topScores });
     } catch (err) {
         console.error(err);
@@ -39,15 +39,16 @@ app.get('/highscores', async (req, res) => {
     }
 });
 
+
 // Endpoint to update the high score in real-time
 app.post('/highscore', async (req, res) => {
-    const { newScore } = req.body;
+    const { newScore, playerName } = req.body;
 
     try {
-        // Add the new score
-        await pool.query('INSERT INTO high_score (value) VALUES ($1)', [newScore]);
+        // Add the new score with the player's name
+        await pool.query('INSERT INTO high_score (name, value) VALUES ($1, $2)', [playerName, newScore]);
 
-        // Optional: Limit total rows to top 5 scores
+        // Optional: Clean up older scores to keep only the top 5
         await pool.query(`
             DELETE FROM high_score
             WHERE id NOT IN (
@@ -56,14 +57,15 @@ app.post('/highscore', async (req, res) => {
         `);
 
         // Respond with updated top 5 scores
-        const result = await pool.query('SELECT value FROM high_score ORDER BY value DESC LIMIT 5');
-        const topScores = result.rows.map(row => row.value);
+        const result = await pool.query('SELECT name, value FROM high_score ORDER BY value DESC LIMIT 5');
+        const topScores = result.rows.map(row => ({ name: row.name, value: row.value }));
         res.json({ topScores });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error updating high scores' });
     }
 });
+
 
 // Start the server
 app.listen(PORT, () => {
