@@ -27,44 +27,41 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Endpoint to get the current high score
-app.get('/highscore', async (req, res) => {
+// Endpoint to get the top 5 scores
+app.get('/highscores', async (req, res) => {
     try {
-        const result = await pool.query('SELECT value FROM high_score LIMIT 1');
-        const highScore = result.rows.length > 0 ? result.rows[0].value : 0;
-        res.json({ highScore });
+        const result = await pool.query('SELECT value FROM high_score ORDER BY value DESC LIMIT 5');
+        const topScores = result.rows.map(row => row.value);
+        res.json({ topScores });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Error fetching high score' });
+        res.status(500).json({ error: 'Error fetching top scores' });
     }
 });
 
 // Endpoint to update the high score in real-time
 app.post('/highscore', async (req, res) => {
-    const { newHighScore } = req.body;
+    const { newScore } = req.body;
 
     try {
-        // Check the current high score
-        const result = await pool.query('SELECT value FROM high_score LIMIT 1');
-        const currentHighScore = result.rows.length > 0 ? result.rows[0].value : 0;
+        // Add the new score
+        await pool.query('INSERT INTO high_score (value) VALUES ($1)', [newScore]);
 
-        if (newHighScore > currentHighScore) {
-            if (result.rows.length > 0) {
-                // Update the high score
-                await pool.query('UPDATE high_score SET value = $1', [newHighScore]);
-            } else {
-                // Insert the high score for the first time
-                await pool.query('INSERT INTO high_score (value) VALUES ($1)', [newHighScore]);
-            }
-        }
+        // Optional: Limit total rows to top 5 scores
+        await pool.query(`
+            DELETE FROM high_score
+            WHERE id NOT IN (
+                SELECT id FROM high_score ORDER BY value DESC LIMIT 5
+            )
+        `);
 
-        const updatedResult = await pool.query('SELECT value FROM high_score LIMIT 1');
-        const updatedHighScore = updatedResult.rows[0].value;
-
-        res.json({ highScore: updatedHighScore });
+        // Respond with updated top 5 scores
+        const result = await pool.query('SELECT value FROM high_score ORDER BY value DESC LIMIT 5');
+        const topScores = result.rows.map(row => row.value);
+        res.json({ topScores });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Error updating high score' });
+        res.status(500).json({ error: 'Error updating high scores' });
     }
 });
 

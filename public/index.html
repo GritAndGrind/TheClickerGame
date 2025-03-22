@@ -6,198 +6,164 @@
     <title>The Clicker Game</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: #fff;
             margin: 0;
             padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
-        h1 {
-            font-size: 3rem;
-            margin: 10px 0;
-            font-weight: bold;
-            text-decoration: underline;
-            color: #f0e68c;
+        #scoreDisplay, #highScoreDisplay {
+            font-size: 2em;
+            margin: 10px;
         }
-        #instructions {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+        #highScoreDisplay {
+            color: red; /* Highlight the high score */
         }
-        #startButton, #clickButton {
-            background: #ff6a00;
-            color: #fff;
-            border: none;
-            padding: 15px 30px;
+        #timerBar {
+            width: 300px; /* Fixed width */
+            height: 10px;
+            background: green;
+            margin: 20px auto;
             border-radius: 5px;
-            font-size: 1.2rem;
+            transition: width 10s linear;
+        }
+        #clickButton, #startButton, #resetButton {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            margin: 10px;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
         }
-        #startButton:hover, #clickButton:hover {
-            background: #ff4500;
-            transform: scale(1.1);
+        #leaderboard {
+            margin-top: 30px;
         }
-        #startButton {
-            width: auto;
-            max-width: 200px;
-            margin: 0 auto;
-            display: inline-block;
+        #scoreList {
+            list-style-type: decimal;
+            padding-left: 0;
         }
-        #clickButton {
-            display: none;
-            margin: 20px auto;
-            position: absolute;
+        #scoreList li {
+            font-size: 1.2em;
+            margin: 5px 0;
         }
-        #countdown, #scoreContainer {
-            margin: 20px auto;
-            font-size: 1.5rem;
-        }
-        #score, #highScore {
+        #scoreList li:first-child {
+            color: red; /* Highlight the top score */
             font-weight: bold;
-        }
-		#timerBar {
-			width: 300px; /* Fixed width for consistent appearance */
-			height: 10px; /* Maintain height */
-			background: green;
-			position: relative;
-			margin: 20px auto; /* Center the bar */
-			border-radius: 5px; /* Smooth edges */
-			transition: width 10s linear; /* Smooth depletion over 10 seconds */
-		}
-
-        footer {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        @media (max-width: 600px) {
-            #startButton, #clickButton {
-                font-size: 1rem;
-                padding: 10px 20px;
-            }
         }
     </style>
 </head>
 <body>
     <h1>The Clicker Game</h1>
-    <p id="instructions">Hit start to begin and aim for a new high score!</p>
-    <button id="startButton">Start</button>
-    <div id="countdown"></div>
+    <div id="highScoreDisplay">High Score: <span id="highScore">0</span></div>
+    <div id="scoreDisplay">Score: <span id="score">0</span></div>
+    <button id="startButton">Start Game</button>
+    <button id="resetButton">Reset High Score</button>
     <div id="timerBar"></div>
-    <button id="clickButton">Click Me!</button>
-    <div id="scoreContainer">
-        <p>Current Score: <span id="score">0</span></p>
-        <p>High Score: <span id="highScore">0</span></p>
+    <button id="clickButton" style="display: none;">Click Me!</button>
+
+    <div id="leaderboard">
+        <h2>Leaderboard</h2>
+        <ol id="scoreList">
+            <!-- Top scores will be dynamically added here -->
+        </ol>
     </div>
-    <footer>Click as fast as you can! 🎮</footer>
 
     <script>
         const startButton = document.getElementById("startButton");
         const clickButton = document.getElementById("clickButton");
-        const countdownDisplay = document.getElementById("countdown");
-        const scoreDisplay = document.getElementById("score");
+        const resetButton = document.getElementById("resetButton");
         const highScoreDisplay = document.getElementById("highScore");
+        const scoreDisplay = document.getElementById("score");
         const timerBar = document.getElementById("timerBar");
+        const leaderboard = document.getElementById("scoreList");
 
- const apiURL = '/highscore'; // Relative URL for Heroku hosting
+        let clickCount = 0;
+        let highScore = 0;
 
-let clickCount = 0;
-let highScore = 0;
+        async function fetchHighScores() {
+            try {
+                const response = await fetch('/highscores');
+                const data = await response.json();
 
-async function fetchHighScore() {
-    try {
-        const response = await fetch(apiURL);
-        const data = await response.json();
-        highScore = data.highScore;
-        highScoreDisplay.textContent = highScore;
-    } catch (err) {
-        console.error('Error fetching high score:', err);
-    }
-}
+                leaderboard.innerHTML = ''; // Clear leaderboard
 
-async function updateHighScore(newHighScore) {
-    try {
-        const response = await fetch(apiURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newHighScore }),
+                data.topScores.forEach((score, index) => {
+                    const scoreItem = document.createElement('li');
+                    scoreItem.textContent = score;
+
+                    if (index === 0) {
+                        scoreItem.style.color = 'red';
+                        scoreItem.style.fontWeight = 'bold';
+                    }
+
+                    leaderboard.appendChild(scoreItem);
+                });
+
+                highScore = data.topScores[0] || 0; // Update highScore
+                highScoreDisplay.textContent = highScore;
+            } catch (err) {
+                console.error('Error fetching high scores:', err);
+            }
+        }
+
+        async function updateHighScore(newScore) {
+            try {
+                const response = await fetch('/highscore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newScore }),
+                });
+                const data = await response.json();
+                fetchHighScores(); // Refresh leaderboard
+            } catch (err) {
+                console.error('Error updating high score:', err);
+            }
+        }
+
+        async function resetHighScore() {
+            try {
+                const response = await fetch('/reset-highscore', {
+                    method: 'POST',
+                });
+                const data = await response.json();
+                alert(data.message); // Notify user
+                fetchHighScores(); // Refresh leaderboard
+            } catch (err) {
+                console.error('Error resetting high score:', err);
+            }
+        }
+
+        startButton.addEventListener("click", () => {
+            clickCount = 0;
+            scoreDisplay.textContent = clickCount;
+            timerBar.style.transition = "none"; // Reset bar
+            timerBar.style.width = "300px"; // Full width
+            void timerBar.offsetWidth; // Trigger reflow
+            timerBar.style.transition = "width 10s linear"; // Reapply animation
+            timerBar.style.width = "0px";
+
+            clickButton.style.display = "inline-block";
+
+            clickButton.removeEventListener("click", handleClick);
+            clickButton.addEventListener("click", handleClick);
+
+            setTimeout(async () => {
+                clickButton.style.display = "none";
+                startButton.style.display = "inline-block";
+
+                if (clickCount > highScore) {
+                    await updateHighScore(clickCount);
+                }
+            }, 10000);
         });
-        const data = await response.json();
-        highScore = data.highScore;
-        highScoreDisplay.textContent = highScore; // Update on the frontend immediately
-    } catch (err) {
-        console.error('Error updating high score:', err);
-    }
-}
 
-startButton.addEventListener("click", () => {
-    clickCount = 0;
-    scoreDisplay.textContent = clickCount;
-    countdownDisplay.textContent = "3";
-    startButton.style.display = "none";
-    timerBar.style.width = "100%";
-
-    let countdown = 3;
-    const countdownInterval = setInterval(() => {
-        countdown -= 1;
-        countdownDisplay.textContent = countdown > 0 ? countdown : "Go!";
-        if (countdown <= 0) {
-            clearInterval(countdownInterval);
-            countdownDisplay.textContent = "";
-            startGame();
+        function handleClick() {
+            clickCount++;
+            scoreDisplay.textContent = clickCount;
+            clickButton.style.top = `${Math.random() * 80 + 10}%`;
+            clickButton.style.left = `${Math.random() * 80}%`;
         }
-    }, 1000);
-});
 
-function startGame() {
-    clickButton.style.display = "inline-block";
+        resetButton.addEventListener("click", resetHighScore);
 
-    // Ensure the timer bar is fully reset to 100% before starting
-    timerBar.style.transition = "none"; // Disable transition momentarily
-    timerBar.style.width = "300px"; // Reset to full width
-    void timerBar.offsetWidth; // Trigger reflow to apply reset immediately
-    timerBar.style.transition = "width 10s linear"; // Reapply transition
-
-    // Deplete the timer bar over 10 seconds
-    timerBar.style.width = "0px";
-
-    timer = setTimeout(async () => {
-        clickButton.style.display = "none";
-        startButton.style.display = "inline-block";
-
-        // Update high score if necessary
-        if (clickCount > highScore) {
-            await updateHighScore(clickCount);
-        }
-    }, 10000);
-
-    // Prevent duplicate click handlers
-    clickButton.removeEventListener("click", handleClick);
-    clickButton.addEventListener("click", handleClick);
-}
-
-
-function handleClick() {
-    clickCount++;
-    scoreDisplay.textContent = clickCount;
-
-    // Randomize button position
-    clickButton.style.top = `${Math.random() * 80 + 10}%`;
-    clickButton.style.left = `${Math.random() * 80}%`;
-}
-
-
-// Automatically fetch the latest high score every 5 seconds
-setInterval(fetchHighScore, 5000);
-
-// Fetch the high score when the page loads
-fetchHighScore();
-
+        fetchHighScores(); // Initial leaderboard load
     </script>
 </body>
 </html>
