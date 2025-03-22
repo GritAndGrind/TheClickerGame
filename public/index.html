@@ -60,14 +60,16 @@
         #score, #highScore {
             font-weight: bold;
         }
-        #timerBar {
-            width: 300xp; /* Adjusted width */
-            height: 10px;
-            background: green;
-            position: relative;
-            margin: 20px auto; /* Centers the bar */
-            border-radius: 5px; /* Rounded edges */
-        }
+		#timerBar {
+			width: 300px; /* Fixed width for consistent appearance */
+			height: 10px; /* Maintain height */
+			background: green;
+			position: relative;
+			margin: 20px auto; /* Center the bar */
+			border-radius: 5px; /* Smooth edges */
+			transition: width 10s linear; /* Smooth depletion over 10 seconds */
+		}
+
         footer {
             margin-top: 20px;
             font-size: 0.9rem;
@@ -155,25 +157,30 @@ startButton.addEventListener("click", () => {
 function startGame() {
     clickButton.style.display = "inline-block";
 
-    // Remove any existing click event listener
-    clickButton.removeEventListener("click", handleClick);
+    // Ensure the timer bar is fully reset to 100% before starting
+    timerBar.style.transition = "none"; // Disable transition momentarily
+    timerBar.style.width = "300px"; // Reset to full width
+    void timerBar.offsetWidth; // Trigger reflow to apply reset immediately
+    timerBar.style.transition = "width 10s linear"; // Reapply transition
 
-    // Add the click event listener
-    clickButton.addEventListener("click", handleClick);
-
-    // Start timer bar depletion
-    timerBar.style.transition = "width 10s linear";
-    timerBar.style.width = "0%";
+    // Deplete the timer bar over 10 seconds
+    timerBar.style.width = "0px";
 
     timer = setTimeout(async () => {
         clickButton.style.display = "none";
         startButton.style.display = "inline-block";
 
+        // Update high score if necessary
         if (clickCount > highScore) {
             await updateHighScore(clickCount);
         }
     }, 10000);
+
+    // Prevent duplicate click handlers
+    clickButton.removeEventListener("click", handleClick);
+    clickButton.addEventListener("click", handleClick);
 }
+
 
 function handleClick() {
     clickCount++;
