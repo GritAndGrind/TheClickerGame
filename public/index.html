@@ -104,79 +104,87 @@
         const highScoreDisplay = document.getElementById("highScore");
         const timerBar = document.getElementById("timerBar");
 
-        const apiURL = 'http://localhost:3000/highscore'; // Replace with the actual server URL
+ const apiURL = '/highscore'; // Relative URL for Heroku hosting
 
-        let clickCount = 0;
-        let highScore = 0;
-        let timer;
+let clickCount = 0;
+let highScore = 0;
 
-        // Load the high score from the server on page load
-        async function fetchHighScore() {
-            const response = await fetch(apiURL);
-            const data = await response.json();
-            highScore = data.highScore;
-            highScoreDisplay.textContent = highScore;
-        }
+async function fetchHighScore() {
+    try {
+        const response = await fetch(apiURL);
+        const data = await response.json();
+        highScore = data.highScore;
+        highScoreDisplay.textContent = highScore;
+    } catch (err) {
+        console.error('Error fetching high score:', err);
+    }
+}
 
-        // Update the high score on the server
-        async function updateHighScore(newHighScore) {
-            const response = await fetch(apiURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ newHighScore }),
-            });
-            const data = await response.json();
-            highScore = data.highScore;
-            highScoreDisplay.textContent = highScore;
-        }
-
-        startButton.addEventListener("click", () => {
-            clickCount = 0;
-            scoreDisplay.textContent = clickCount;
-            countdownDisplay.textContent = "3";
-            startButton.style.display = "none";
-            timerBar.style.width = "100xp";
-
-            let countdown = 3;
-            const countdownInterval = setInterval(() => {
-                countdown -= 1;
-                countdownDisplay.textContent = countdown > 0 ? countdown : "Go!";
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    countdownDisplay.textContent = ""; // Hide "Go!" after the game starts
-                    startGame();
-                }
-            }, 1000);
+async function updateHighScore(newHighScore) {
+    try {
+        const response = await fetch(apiURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newHighScore }),
         });
+        const data = await response.json();
+        highScore = data.highScore;
+        highScoreDisplay.textContent = highScore; // Update on the frontend immediately
+    } catch (err) {
+        console.error('Error updating high score:', err);
+    }
+}
 
-        function startGame() {
-            clickButton.style.display = "inline-block";
+startButton.addEventListener("click", () => {
+    clickCount = 0;
+    scoreDisplay.textContent = clickCount;
+    countdownDisplay.textContent = "3";
+    startButton.style.display = "none";
+    timerBar.style.width = "100%";
 
-            // Start timer bar depletion
-            timerBar.style.transition = "width 10s linear";
-            timerBar.style.width = "0%";
-
-            timer = setTimeout(async () => {
-                clickButton.style.display = "none";
-                startButton.style.display = "inline-block";
-
-                if (clickCount > highScore) {
-                    await updateHighScore(clickCount);
-                }
-            }, 10000);
-
-            clickButton.addEventListener("click", () => {
-                clickCount++;
-                scoreDisplay.textContent = clickCount;
-
-                // Randomize button position
-                clickButton.style.top = `${Math.random() * 80 + 10}%`;
-                clickButton.style.left = `${Math.random() * 80}%`;
-            });
+    let countdown = 3;
+    const countdownInterval = setInterval(() => {
+        countdown -= 1;
+        countdownDisplay.textContent = countdown > 0 ? countdown : "Go!";
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            countdownDisplay.textContent = "";
+            startGame();
         }
+    }, 1000);
+});
 
-        // Fetch the high score when the page loads
-        fetchHighScore();
+function startGame() {
+    clickButton.style.display = "inline-block";
+
+    // Start timer bar depletion
+    timerBar.style.transition = "width 10s linear";
+    timerBar.style.width = "0%";
+
+    timer = setTimeout(async () => {
+        clickButton.style.display = "none";
+        startButton.style.display = "inline-block";
+
+        if (clickCount > highScore) {
+            await updateHighScore(clickCount);
+        }
+    }, 10000);
+
+    clickButton.addEventListener("click", () => {
+        clickCount++;
+        scoreDisplay.textContent = clickCount;
+
+        clickButton.style.top = `${Math.random() * 80 + 10}%`;
+        clickButton.style.left = `${Math.random() * 80}%`;
+    });
+}
+
+// Automatically fetch the latest high score every 5 seconds
+setInterval(fetchHighScore, 5000);
+
+// Fetch the high score when the page loads
+fetchHighScore();
+
     </script>
 </body>
 </html>

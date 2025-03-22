@@ -39,7 +39,7 @@ app.get('/highscore', async (req, res) => {
     }
 });
 
-// Endpoint to update the high score
+// Endpoint to update the high score in real-time
 app.post('/highscore', async (req, res) => {
     const { newHighScore } = req.body;
 
@@ -58,7 +58,10 @@ app.post('/highscore', async (req, res) => {
             }
         }
 
-        res.json({ highScore: Math.max(newHighScore, currentHighScore) });
+        const updatedResult = await pool.query('SELECT value FROM high_score LIMIT 1');
+        const updatedHighScore = updatedResult.rows[0].value;
+
+        res.json({ highScore: updatedHighScore });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error updating high score' });
