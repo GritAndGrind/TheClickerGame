@@ -213,25 +213,25 @@
 			clickButton.removeEventListener("click", handleClick);
 			clickButton.addEventListener("click", handleClick);
 
-setTimeout(async () => {
-    clickButton.style.display = "none";
-    startButton.style.display = "inline-block";
+		setTimeout(async () => {
+			clickButton.style.display = "none";
+			startButton.style.display = "inline-block";
 
-    if (clickCount > (highScore ? highScore.value : 0)) {
-        const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
-        await updateHighScore(clickCount, playerName);
-    } else {
-        // Provide feedback based on how close the player was to the high score
-        if (clickCount === (highScore ? highScore.value - 1 : 0)) {
-            alert("So close! You missed the high score by just one point. Try again!");
-        } else {
-            alert("Nice try! Keep clicking and aim for the high score.");
-        }
-    }
+			if (clickCount > (highScore ? highScore.value : 0)) {
+				const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
+				await updateHighScore(clickCount, playerName);
+			} else {
+				// Provide feedback based on how close the player was to the high score
+				if (clickCount === (highScore ? highScore.value - 1 : 0)) {
+					alert("So close! You missed the high score by just one point. Try again!");
+				} else {
+					alert("Nice try! Keep clicking and aim for the high score.");
+				}
+			}
 
-    // Reload or fetch updated leaderboard
-    fetchHighScores();
-}, 10000);
+			// Reload or fetch updated leaderboard
+			fetchHighScores();
+		}, 10000);
 
 
 		});
