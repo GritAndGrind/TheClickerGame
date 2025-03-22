@@ -1,24 +1,29 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path'); // Needed to resolve file paths
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Use Heroku's port, or default to 3000 for local development
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
 
-let highScore = 0; // Temporary in-memory storage
+// Heroku dynamically assigns a port, so we use process.env.PORT
+const PORT = process.env.PORT || 3000;
 
-// Middleware for body parsing and CORS
+// In-memory high score (for now)
+let highScore = 0;
+
+// Middleware
 app.use(bodyParser.json());
 app.use(cors());
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint to get the high score
+// Serve the root route with index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Endpoint to get the current high score
 app.get('/highscore', (req, res) => {
     res.json({ highScore });
 });
@@ -26,11 +31,15 @@ app.get('/highscore', (req, res) => {
 // Endpoint to update the high score
 app.post('/highscore', (req, res) => {
     const { newHighScore } = req.body;
+
     if (newHighScore > highScore) {
         highScore = newHighScore;
     }
+
     res.json({ highScore });
 });
 
 // Start the server
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
