@@ -6,31 +6,71 @@
     <title>The Clicker Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        #scoreDisplay, #highScoreDisplay {
-            font-size: 2em;
-            margin: 10px;
+        h1 {
+            font-size: 3rem;
+            margin: 10px 0;
+            font-weight: bold;
+            text-decoration: underline;
+            color: #f0e68c;
         }
-        #highScoreDisplay {
-            color: red; /* Highlight the high score */
+        #instructions {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        #startButton, #clickButton {
+            background: #ff6a00;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        #startButton:hover, #clickButton:hover {
+            background: #ff4500;
+            transform: scale(1.1);
+        }
+        #startButton {
+            width: auto;
+            max-width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+        }
+        #clickButton {
+            display: none;
+            margin: 20px auto;
+            position: absolute;
+        }
+        #countdown, #scoreContainer {
+            margin: 20px auto;
+            font-size: 1.5rem;
+        }
+        #score, #highScore {
+            font-weight: bold;
+        }
+        #highScore {
+            color: red; /* Highlight high score */
         }
         #timerBar {
-            width: 300px; /* Fixed width */
-            height: 10px;
+            width: 300px; /* Fixed width for consistent appearance */
+            height: 10px; /* Maintain height */
             background: green;
-            margin: 20px auto;
-            border-radius: 5px;
-            transition: width 10s linear;
-        }
-        #clickButton, #startButton, #resetButton {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            margin: 10px;
-            cursor: pointer;
+            position: relative;
+            margin: 20px auto; /* Center the bar */
+            border-radius: 5px; /* Smooth edges */
+            transition: width 10s linear; /* Smooth depletion over 10 seconds */
         }
         #leaderboard {
             margin-top: 30px;
@@ -47,6 +87,17 @@
             color: red; /* Highlight the top score */
             font-weight: bold;
         }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        @media (max-width: 600px) {
+            #startButton, #clickButton {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -54,7 +105,6 @@
     <div id="highScoreDisplay">High Score: <span id="highScore">0</span></div>
     <div id="scoreDisplay">Score: <span id="score">0</span></div>
     <button id="startButton">Start Game</button>
-    <button id="resetButton">Reset High Score</button>
     <div id="timerBar"></div>
     <button id="clickButton" style="display: none;">Click Me!</button>
 
@@ -68,7 +118,6 @@
     <script>
         const startButton = document.getElementById("startButton");
         const clickButton = document.getElementById("clickButton");
-        const resetButton = document.getElementById("resetButton");
         const highScoreDisplay = document.getElementById("highScore");
         const scoreDisplay = document.getElementById("score");
         const timerBar = document.getElementById("timerBar");
@@ -117,19 +166,6 @@
             }
         }
 
-        async function resetHighScore() {
-            try {
-                const response = await fetch('/reset-highscore', {
-                    method: 'POST',
-                });
-                const data = await response.json();
-                alert(data.message); // Notify user
-                fetchHighScores(); // Refresh leaderboard
-            } catch (err) {
-                console.error('Error resetting high score:', err);
-            }
-        }
-
         startButton.addEventListener("click", () => {
             clickCount = 0;
             scoreDisplay.textContent = clickCount;
@@ -160,8 +196,6 @@
             clickButton.style.top = `${Math.random() * 80 + 10}%`;
             clickButton.style.left = `${Math.random() * 80}%`;
         }
-
-        resetButton.addEventListener("click", resetHighScore);
 
         fetchHighScores(); // Initial leaderboard load
     </script>
