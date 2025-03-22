@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Clicker Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin: 10px 0;
+            font-weight: bold;
+            text-decoration: underline;
+            color: #f0e68c;
+        }
+        #instructions {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        #startButton, #clickButton {
+            background: #ff6a00;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        #startButton:hover, #clickButton:hover {
+            background: #ff4500;
+            transform: scale(1.1);
+        }
+        #startButton {
+            width: auto;
+            max-width: 200px;
+            margin: 0 auto;
+            display: inline-block;
+        }
+        #clickButton {
+            display: none;
+            margin: 20px auto;
+            position: absolute;
+        }
+        #countdown, #scoreContainer {
+            margin: 20px auto;
+            font-size: 1.5rem;
+        }
+        #score, #highScore {
+            font-weight: bold;
+        }
+        #timerBar {
+            width: 100xp; /* Adjusted width */
+            max-width: 300px;
+            height: 10px;
+            background: green;
+            position: relative;
+            margin: 20px auto; /* Centers the bar */
+            border-radius: 5px; /* Rounded edges */
+            transition: width 10s linear; /* Timer bar animation */
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        @media (max-width: 600px) {
+            #startButton, #clickButton {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>The Clicker Game</h1>
+    <p id="instructions">Hit start to begin and aim for a new high score!</p>
+    <button id="startButton">Start</button>
+    <div id="countdown"></div>
+    <div id="timerBar"></div>
+    <button id="clickButton">Click Me!</button>
+    <div id="scoreContainer">
+        <p>Current Score: <span id="score">0</span></p>
+        <p>High Score: <span id="highScore">0</span></p>
+    </div>
+    <footer>Click as fast as you can! 🎮</footer>
+
+    <script>
+        const startButton = document.getElementById("startButton");
+        const clickButton = document.getElementById("clickButton");
+        const countdownDisplay = document.getElementById("countdown");
+        const scoreDisplay = document.getElementById("score");
+        const highScoreDisplay = document.getElementById("highScore");
+        const timerBar = document.getElementById("timerBar");
+
+        const apiURL = 'http://localhost:3000/highscore'; // Replace with the actual server URL
+
+        let clickCount = 0;
+        let highScore = 0;
+        let timer;
+
+        // Load the high score from the server on page load
+        async function fetchHighScore() {
+            const response = await fetch(apiURL);
+            const data = await response.json();
+            highScore = data.highScore;
+            highScoreDisplay.textContent = highScore;
+        }
+
+        // Update the high score on the server
+        async function updateHighScore(newHighScore) {
+            const response = await fetch(apiURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newHighScore }),
+            });
+            const data = await response.json();
+            highScore = data.highScore;
+            highScoreDisplay.textContent = highScore;
+        }
+
+        startButton.addEventListener("click", () => {
+            clickCount = 0;
+            scoreDisplay.textContent = clickCount;
+            countdownDisplay.textContent = "3";
+            startButton.style.display = "none";
+            timerBar.style.width = "100xp";
+
+            let countdown = 3;
+            const countdownInterval = setInterval(() => {
+                countdown -= 1;
+                countdownDisplay.textContent = countdown > 0 ? countdown : "Go!";
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.textContent = ""; // Hide "Go!" after the game starts
+                    startGame();
+                }
+            }, 1000);
+        });
+
+        function startGame() {
+            clickButton.style.display = "inline-block";
+
+            // Start timer bar depletion
+            timerBar.style.transition = "width 10s linear";
+            timerBar.style.width = "0%";
+
+            timer = setTimeout(async () => {
+                clickButton.style.display = "none";
+                startButton.style.display = "inline-block";
+
+                if (clickCount > highScore) {
+                    await updateHighScore(clickCount);
+                }
+            }, 10000);
+
+            clickButton.addEventListener("click", () => {
+                clickCount++;
+                scoreDisplay.textContent = clickCount;
+
+                // Randomize button position
+                clickButton.style.top = `${Math.random() * 80 + 10}%`;
+                clickButton.style.left = `${Math.random() * 80}%`;
+            });
+        }
+
+        // Fetch the high score when the page loads
+        fetchHighScore();
+    </script>
+</body>
+</html>
