@@ -166,29 +166,33 @@
             }
         }
 
-        startButton.addEventListener("click", () => {
-            clickCount = 0;
-            scoreDisplay.textContent = clickCount;
-            timerBar.style.transition = "none"; // Reset bar
-            timerBar.style.width = "300px"; // Full width
-            void timerBar.offsetWidth; // Trigger reflow
-            timerBar.style.transition = "width 10s linear"; // Reapply animation
-            timerBar.style.width = "0px";
+		startButton.addEventListener("click", () => {
+			clickCount = 0;
+			scoreDisplay.textContent = clickCount;
+			timerBar.style.transition = "none"; // Reset bar
+			timerBar.style.width = "300px"; // Full width
+			void timerBar.offsetWidth; // Trigger reflow
+			timerBar.style.transition = "width 10s linear"; // Reapply animation
+			timerBar.style.width = "0px";
 
-            clickButton.style.display = "inline-block";
+			clickButton.style.display = "inline-block";
 
-            clickButton.removeEventListener("click", handleClick);
-            clickButton.addEventListener("click", handleClick);
+			clickButton.removeEventListener("click", handleClick);
+			clickButton.addEventListener("click", handleClick);
 
-            setTimeout(async () => {
-                clickButton.style.display = "none";
-                startButton.style.display = "inline-block";
+			setTimeout(async () => {
+				clickButton.style.display = "none";
+				startButton.style.display = "inline-block";
 
-                if (clickCount > highScore) {
-                    await updateHighScore(clickCount);
-                }
-            }, 10000);
-        });
+				if (clickCount > highScore) {
+					await updateHighScore(clickCount);
+				}
+
+				// Reload the page to show updated scores
+				window.location.reload();
+			}, 10000);
+		});
+
 
         function handleClick() {
             clickCount++;
