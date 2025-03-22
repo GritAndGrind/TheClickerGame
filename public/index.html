@@ -218,10 +218,13 @@
 				startButton.style.display = "inline-block";
 
 				// Prompt for player name if they set a new high score
-				if (clickCount > highScore) {
-					const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
-					await updateHighScore(clickCount, playerName);
-				}
+			if (clickCount > (highScore ? highScore.value : 0)) {
+				const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
+				await updateHighScore(clickCount, playerName);
+			}
+
+			console.log("Current Score:", clickCount);
+			console.log("High Score:", highScore);
 
 				// Reload or fetch updated leaderboard
 				fetchHighScores();
