@@ -140,7 +140,7 @@ startButton.addEventListener("click", () => {
     scoreDisplay.textContent = clickCount;
     countdownDisplay.textContent = "3";
     startButton.style.display = "none";
-    timerBar.style.width = "100%";
+    timerBar.style.width = "100xp";
 
     let countdown = 3;
     const countdownInterval = setInterval(() => {
@@ -159,7 +159,7 @@ function startGame() {
 
     // Start timer bar depletion
     timerBar.style.transition = "width 10s linear";
-    timerBar.style.width = "0%";
+    timerBar.style.width = "100xp";
 
     timer = setTimeout(async () => {
         clickButton.style.display = "none";
