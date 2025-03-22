@@ -206,9 +206,8 @@
 				if (clickCount > highScore) {
 					await updateHighScore(clickCount);
 				}
-
-				// Reload the page to show updated scores
-				window.location.reload();
+			// reload the leaderboards after each play
+			fetchHighScores(); // Initial leaderboard load
 			}, 10000);
 		});
 
