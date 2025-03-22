@@ -2,14 +2,18 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const { Pool } = require('pg'); // Import Postgres client
 
 const app = express();
-
-// Heroku dynamically assigns a port, so we use process.env.PORT
 const PORT = process.env.PORT || 3000;
 
-// In-memory high score (for now)
-let highScore = 0;
+// Postgres connection pool
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false, // Required for Heroku Postgres
+    },
+});
 
 // Middleware
 app.use(bodyParser.json());
@@ -24,19 +28,41 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint to get the current high score
-app.get('/highscore', (req, res) => {
-    res.json({ highScore });
+app.get('/highscore', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT value FROM high_score LIMIT 1');
+        const highScore = result.rows.length > 0 ? result.rows[0].value : 0;
+        res.json({ highScore });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error fetching high score' });
+    }
 });
 
 // Endpoint to update the high score
-app.post('/highscore', (req, res) => {
+app.post('/highscore', async (req, res) => {
     const { newHighScore } = req.body;
 
-    if (newHighScore > highScore) {
-        highScore = newHighScore;
-    }
+    try {
+        // Check the current high score
+        const result = await pool.query('SELECT value FROM high_score LIMIT 1');
+        const currentHighScore = result.rows.length > 0 ? result.rows[0].value : 0;
 
-    res.json({ highScore });
+        if (newHighScore > currentHighScore) {
+            if (result.rows.length > 0) {
+                // Update the high score
+                await pool.query('UPDATE high_score SET value = $1', [newHighScore]);
+            } else {
+                // Insert the high score for the first time
+                await pool.query('INSERT INTO high_score (value) VALUES ($1)', [newHighScore]);
+            }
+        }
+
+        res.json({ highScore: Math.max(newHighScore, currentHighScore) });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error updating high score' });
+    }
 });
 
 // Start the server
