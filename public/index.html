@@ -229,8 +229,10 @@
 			clickButton.style.display = "inline-block";
 
 			clickButton.removeEventListener("click", handleClick);
+			
+			// Attach the particle effect to the button
+			clickButton.addEventListener('click', createParticles);
 			clickButton.addEventListener("click", handleClick);
-
 		setTimeout(async () => {
 			clickButton.style.display = "none";
 			startButton.style.display = "inline-block";
@@ -290,8 +292,6 @@
             scoreDisplay.textContent = clickCount;
             clickButton.style.top = `${Math.random() * 80 + 10}%`;
             clickButton.style.left = `${Math.random() * 80}%`;
-			// Attach the particle effect to the button
-			clickButton.addEventListener('click', createParticles);
         }
 
         fetchHighScores(); // Initial leaderboard load
