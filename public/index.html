@@ -129,8 +129,8 @@
         }
 		.particle {
 			position: absolute;
-			width: 25px;
-			height: 25px;
+			width: 15px;
+			height: 15px;
 			background: #ff6a00; /* Particle color */
 			border-radius: 50%; /* Make it circular */
 			animation: explode 3s forwards;
@@ -266,8 +266,8 @@
 				particle.className = 'particle';
 
 				// Randomize particle position and movement
-				const x = (Math.random() - 0.5) * 200; // Horizontal distance
-				const y = (Math.random() - 0.5) * 200; // Vertical distance
+				const x = (Math.random() - 0.5) * 400; // Horizontal distance
+				const y = (Math.random() - 0.5) * 400; // Vertical distance
 
 				// Set particle position relative to the button
 				particle.style.left = `${event.clientX - rect.left}px`;
