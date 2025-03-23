@@ -41,30 +41,17 @@ app.get('/highscores', async (req, res) => {
 
 
 // Endpoint to update the high score in real-time
-app.post('/highscore', async (req, res) => {
-    const { newScore, playerName } = req.body;
-
+app.get('/highscores', async (req, res) => {
     try {
-        // Add the new score with the player's name
-        await pool.query('INSERT INTO high_score (name, value) VALUES ($1, $2)', [playerName, newScore]);
-
-        // Optional: Clean up older scores to keep only the top 5
-        await pool.query(`
-            DELETE FROM high_score
-            WHERE id NOT IN (
-                SELECT id FROM high_score ORDER BY value DESC LIMIT 5
-            )
-        `);
-
-        // Respond with updated top 5 scores
-        const result = await pool.query('SELECT name, value FROM high_score ORDER BY value DESC LIMIT 5');
+        const result = await pool.query('SELECT name, value FROM high_score ORDER BY value DESC LIMIT 100');
         const topScores = result.rows.map(row => ({ name: row.name, value: row.value }));
         res.json({ topScores });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Error updating high scores' });
+        res.status(500).json({ error: 'Error fetching top scores' });
     }
 });
+
 
 
 // Start the server
