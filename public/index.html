@@ -229,11 +229,12 @@
 			timerBar.style.width = "0px";
 
 			clickButton.style.display = "inline-block";
-
-			clickButton.removeEventListener("click", handleClick);
+			
 			
 			// Attach the particle effect to the button
 			clickButton.addEventListener('click', createParticles);
+			clickButton.removeEventListener("click", handleClick);
+			
 			clickButton.addEventListener("click", handleClick);
 			
 		setTimeout(async () => {
@@ -286,7 +287,7 @@
 
 				// Remove particle after animation ends
 				particle.addEventListener('animationend', () => {
-					particle.remove();
+				particle.remove();
 				});
 			}
 		}
