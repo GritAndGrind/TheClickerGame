@@ -233,6 +233,7 @@
 			// Attach the particle effect to the button
 			clickButton.addEventListener('click', createParticles);
 			clickButton.addEventListener("click", handleClick);
+			
 		setTimeout(async () => {
 			clickButton.style.display = "none";
 			startButton.style.display = "inline-block";
@@ -265,8 +266,8 @@
 				particle.className = 'particle';
 
 				// Randomize particle position and movement
-				const x = (Math.random() - 0.5) * 100; // Horizontal distance
-				const y = (Math.random() - 0.5) * 100; // Vertical distance
+				const x = (Math.random() - 0.5) * 200; // Horizontal distance
+				const y = (Math.random() - 0.5) * 200; // Vertical distance
 
 				// Set particle position relative to the button
 				particle.style.left = `${event.clientX - rect.left}px`;
