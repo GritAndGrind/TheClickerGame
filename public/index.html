@@ -127,30 +127,6 @@
                 padding: 10px 20px;
             }
         }
-		#scoreList {
-			max-height: 200px; /* Limits visible scores to top 4 */
-			overflow-y: auto; /* Adds scroll functionality for overflow */
-			list-style-type: decimal;
-			margin: 0;
-			padding: 0;
-		}
-
-		#scoreList li {
-			font-size: 1.2em;
-			margin: 5px 0;
-			padding: 5px;
-			white-space: nowrap;
-		}
-
-		#scoreList li:nth-child(-n+4) {
-			font-weight: bold; /* Highlights the top 4 scores */
-		}
-		#scoreList li.highlight {
-			background-color: yellow; /* Highlight player name */
-			color: black;
-			font-weight: bold;
-		}
-
     </style>
 </head>
 <body>
@@ -161,12 +137,12 @@
     <div id="timerBar"></div>
     <button id="clickButton" style="display: none;">Click Me!</button>
 
-	<div id="leaderboard">
-		<h2>Leaderboard</h2>
-		<ol id="scoreList">
-			<!-- Scores will be dynamically added here -->
-		</ol>
-	</div>
+    <div id="leaderboard">
+        <h2>Leaderboard</h2>
+        <ol id="scoreList">
+            <!-- Top scores will be dynamically added here -->
+        </ol>
+    </div>
 
     <script>
         const startButton = document.getElementById("startButton");
@@ -179,37 +155,34 @@
         let clickCount = 0;
         let highScore = 0;
 
-	async function fetchHighScores(playerName = null) {
-		try {
-			const response = await fetch('/highscores');
-			const data = await response.json();
+        async function fetchHighScores() {
+            try {
+                const response = await fetch('/highscores');
+                const data = await response.json();
 
-			leaderboard.innerHTML = ''; // Clear leaderboard
+                leaderboard.innerHTML = ''; // Clear leaderboard
 
-			let playerRank = -1; // Track the player's position in the list
+				data.topScores.forEach((score, index) => {
+					const scoreItem = document.createElement('li');
+					scoreItem.textContent = `${score.name}: ${score.value}`; // Show name and score
 
-			data.topScores.forEach((score, index) => {
-				const scoreItem = document.createElement('li');
-				scoreItem.textContent = `${index + 1}. ${score.name}: ${score.value}`;
+					if (index === 0) {
+						scoreItem.style.color = 'red';
+						scoreItem.style.fontWeight = 'bold';
+					}
 
-				if (playerName && score.name === playerName) {
-					scoreItem.classList.add('highlight'); // Highlight the player's score
-					playerRank = index + 1;
-				}
+					leaderboard.appendChild(scoreItem);
+				});
 
-				leaderboard.appendChild(scoreItem);
-			});
 
-			// Automatically scroll to the player's rank if they're in the list
-			if (playerRank > 4) {
-				const playerItem = leaderboard.querySelector('.highlight');
-				playerItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-			}
-		} catch (err) {
-			console.error('Error fetching high scores:', err);
-		}
-	}
+                highScore = data.topScores[0] || 0; // Update highScore
+                highScoreDisplay.textContent = highScore.value;
+				console.log(highScore); // Inspect the structure of highScore
 
+            } catch (err) {
+                console.error('Error fetching high scores:', err);
+            }
+        }
 
 		async function updateHighScore(newScore, playerName) {
 			try {
@@ -244,27 +217,21 @@
 			clickButton.style.display = "none";
 			startButton.style.display = "inline-block";
 
-			let playerName = localStorage.getItem('playerName'); // Use localStorage to save player's name
-			if (!playerName) {
-				playerName = prompt("Enter your name to track your leaderboard rank:", "Anonymous") || "Anonymous";
-				localStorage.setItem('playerName', playerName); // Save name for future games
+			if (clickCount > (highScore ? highScore.value : 0)) {
+				const playerName = prompt("Congratulations! You got the high score! Enter your name:", "Anonymous");
+				await updateHighScore(clickCount, playerName);
+			} else {
+				// Provide feedback based on how close the player was to the high score
+				if (clickCount === (highScore ? highScore.value - 1 : 0)) {
+					alert("So close! You missed the high score by just one point. Try again!");
+				} else {
+					alert("Nice try! Keep clicking and aim for the high score.");
+				}
 			}
 
-			if (clickCount > (highScore ? highScore.value : 0)) {
-				await updateHighScore(clickCount, playerName);
-			}
-			
-if (playerRank > 4) {
-    alert(`You are ranked #${playerRank}! Scroll down to see your score.`);
-} else if (clickCount === (highScore ? highScore.value - 1 : 0)) {
-    alert("So close! You missed the high score by just one point. Try again!");
-} else {
-    alert("Nice try! Keep clicking and aim for the top spot.");
-}
-			// Fetch updated leaderboard, passing the player's name to highlight their score
-			fetchHighScores(playerName);
+			// Reload or fetch updated leaderboard
+			fetchHighScores();
 		}, 10000);
-		
 
 
 		});
