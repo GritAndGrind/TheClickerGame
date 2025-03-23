@@ -282,8 +282,7 @@
 			}
 		}
 
-// Attach the particle effect to the button
-clickButton.addEventListener('click', createParticles);
+
 
 
         function handleClick() {
@@ -291,6 +290,8 @@ clickButton.addEventListener('click', createParticles);
             scoreDisplay.textContent = clickCount;
             clickButton.style.top = `${Math.random() * 80 + 10}%`;
             clickButton.style.left = `${Math.random() * 80}%`;
+			// Attach the particle effect to the button
+			clickButton.addEventListener('click', createParticles);
         }
 
         fetchHighScores(); // Initial leaderboard load
