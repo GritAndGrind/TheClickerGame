@@ -127,6 +127,24 @@
                 padding: 10px 20px;
             }
         }
+		.particle {
+			position: absolute;
+			width: 5px;
+			height: 5px;
+			background: #ff6a00; /* Particle color */
+			border-radius: 50%; /* Make it circular */
+			animation: explode 0.8s forwards;
+			pointer-events: none; /* Prevent particles from being clickable */
+		}
+
+		/* Particle animation */
+		@keyframes explode {
+			to {
+				transform: translate(var(--x), var(--y)) scale(0);
+				opacity: 0;
+			}
+		}
+
     </style>
 </head>
 <body>
@@ -235,6 +253,37 @@
 
 
 		});
+
+		function createParticles(event) {
+			const button = event.target;
+			const rect = button.getBoundingClientRect();
+
+			for (let i = 0; i < 15; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+
+				// Randomize particle position and movement
+				const x = (Math.random() - 0.5) * 100; // Horizontal distance
+				const y = (Math.random() - 0.5) * 100; // Vertical distance
+
+				// Set particle position relative to the button
+				particle.style.left = `${event.clientX - rect.left}px`;
+				particle.style.top = `${event.clientY - rect.top}px`;
+				particle.style.setProperty('--x', `${x}px`);
+				particle.style.setProperty('--y', `${y}px`);
+				particle.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`; // Random colors
+
+				button.appendChild(particle);
+
+				// Remove particle after animation ends
+				particle.addEventListener('animationend', () => {
+					particle.remove();
+				});
+			}
+		}
+
+// Attach the particle effect to the button
+clickButton.addEventListener('click', createParticles);
 
 
         function handleClick() {
