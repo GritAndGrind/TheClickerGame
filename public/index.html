@@ -142,7 +142,7 @@
 		/* Particle animation */
 		@keyframes explode {
 			to {
-				transform: translate(var(--x), var(--y)) scale(0);
+				transform: translate(var(--x), var(--y)) scale(1.5);
 				opacity: 0;
 			}
 		}
@@ -263,7 +263,7 @@
 			const button = event.target;
 			const rect = button.getBoundingClientRect();
 
-			for (let i = 0; i < 15; i++) {
+			for (let i = 0; i < 25; i++) {
 				const particle = document.createElement('div');
 				particle.className = 'particle';
 
@@ -276,7 +276,11 @@
 				particle.style.top = `${event.clientY - rect.top}px`;
 				particle.style.setProperty('--x', `${x}px`);
 				particle.style.setProperty('--y', `${y}px`);
+				particle.style.opacity = Math.random() * 0.8 + 0.2; // Random opacity between 0.2 and 1
 				particle.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`; // Random colors
+				const colors = ['#ff6a00', '#ff4500', '#ffd700', '#00ff7f', '#1e90ff']; // Add a variety of colors
+				particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+				particle.style.boxShadow = `0 0 10px ${particle.style.background}, 0 0 20px ${particle.style.background}`;
 
 				button.appendChild(particle);
 
